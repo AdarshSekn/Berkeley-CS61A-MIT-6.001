@@ -1,0 +1,1013 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+The content has been processed where security check has been disabled.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Security check has been disabled - content may contain sensitive information
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+adventure_game/
+  1.scm
+  2.scm
+  adv-world.scm
+  adv.scm
+  obj.scm
+  small-world.scm
+  tables.scm
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="adventure_game/1.scm">
+(load "obj")
+(load "adv")
+(load "adv-world")
+
+; places
+(define Dormitory (instantiate place 'Dormitory))
+(define Kirin (instantiate place 'Kirin))
+
+; places links
+(can-go Haas 'east Dormitory)  
+(can-go Dormitory 'west Haas)  
+(can-go Soda 'north Kirin)  
+(can-go Kirin 'south Soda)  
+
+; people
+(define Federico (instantiate person 'Federico Dormitory))
+
+; things
+(define potstickers (instantiate thing 'potstickers))
+
+; place things
+(ask Kirin 'appear potstickers)
+
+; actions
+(ask Federico 'go 'west)
+(ask Federico 'go 'north)
+(ask Federico 'go 'north)
+(ask Federico 'go 'north)
+(ask Federico 'take potstickers)
+(ask Federico 'go 'south)
+(ask Federico 'go 'up)
+(ask Federico 'go 'west)
+(ask Federico 'lose potstickers)
+(ask Brian 'take potstickers)
+(ask Federico 'go 'east)
+(ask Federico 'go 'down)
+(ask Federico 'go 'down)
+</file>
+
+<file path="adventure_game/2.scm">
+; 2A. What kind of thing is the value of variable BRIAN?
+; a closure
+;
+; 2B. List all messages that a PLACE understand.
+; name
+; directions-and-neighbors
+; things
+; people
+; entry-procs
+; exit-procs
+; type
+; neighbors
+; exits
+; look-in
+; appear
+; enter
+; gone
+; exit
+; new-neighbor
+; add-entry-procedure
+; add-exit-procedure
+; remove-entry-procedure
+; remove-exit-procedure
+; clear-all-procs
+;
+; 2C. What is returned by the following expressions and WHY?
+; 
+; > (ask Brian 'place)
+; closure
+; 
+; > (let ((where (ask Brian 'place)))
+;        (ask where 'name))
+; Peoples-Park
+;
+; >  (ask Peoples-park 'appear bagel)
+; error
+;
+; 2D.
+; >  (define computer (instantiate thing 'Durer))
+; Which of the following is correct?  Why?
+; 
+; (ask 61a-lab 'appear computer) <== RIGHT, it's the object
+; 
+; or
+; 
+; (ask 61a-lab 'appear Durer) <== WRONG, variable does not exist
+; 
+; or 
+; 
+; (ask 61a-lab 'appear 'Durer) <== WRONG, internal name
+; 
+; What is returned by (computer 'name)?  Why?
+; 'Durer because it's the internal name
+;
+; 2E.
+(define-class (thing name)
+  (instance-vars (possessor 'no-one))
+  (method (type) 'thing)
+  (method (change-possessor new-possessor)
+    (set! possessor new-possessor)))
+
+; 2F.
+(define (whereis person)
+  (ask (ask person 'place) 'name))
+
+(define (owner thing)
+  (let ((possessor (ask thing 'possessor)))
+    (if (symbol? possessor)
+      possessor
+      (ask possessor 'name))))
+</file>
+
+<file path="adventure_game/adv-world.scm">
+;;;  Data for adventure game.  This file is adv-world.scm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; setting up the world
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define Soda (instantiate place 'Soda))
+(define BH-Office (instantiate place 'BH-Office))
+(define MJC-Office (instantiate place 'MJC-Office))
+(define art-gallery (instantiate place 'art-gallery))
+(define Pimentel (instantiate place 'Pimentel))
+(define 61A-Lab (instantiate place '61A-Lab))
+(define Sproul-Plaza (instantiate place 'Sproul-Plaza))
+(define Telegraph-Ave (instantiate place 'Telegraph-Ave))
+(define Noahs (instantiate place 'Noahs))
+(define Intermezzo (instantiate place 'Intermezzo))
+(define Haas (instantiate place 'Haas-Business-School))
+(define s-h (instantiate place 'sproul-hall))
+(define Dormitory (instantiate place 'Dormitory))
+(define Kirin (instantiate place 'Kirin))
+(define Jail (instantiate place 'Jail))
+(define Pizzeria (instantiate restaurant 'Pizzeria pizza 9.99))
+
+(can-go Soda 'up art-gallery)
+(can-go art-gallery 'down Soda)
+(can-go art-gallery 'west BH-Office)
+(can-go BH-Office 'east art-gallery)
+(can-go art-gallery 'east MJC-Office)
+(can-go MJC-office 'west art-gallery)
+(can-go Soda 'down 61A-Lab)
+(can-go 61A-Lab 'up Soda)
+(can-go Soda 'south Pimentel)
+(can-go Pimentel 'north Soda)
+(can-go Pimentel 'south Haas)
+(can-go Haas 'north Pimentel)
+(can-go Haas 'west s-h)
+(can-go s-h 'east Haas)
+(can-go Sproul-Plaza 'east s-h)
+(can-go s-h 'west Sproul-Plaza)
+(can-go Sproul-Plaza 'north Pimentel)
+(can-go Sproul-Plaza 'south Telegraph-Ave)
+(can-go Telegraph-Ave 'north Sproul-Plaza)
+(can-go Telegraph-Ave 'south Noahs)
+(can-go Noahs 'north Telegraph-Ave)
+(can-go Noahs 'south Intermezzo)
+(can-go Intermezzo 'north Noahs)
+(can-go Haas 'east Dormitory)
+(can-go Haas 'south Pizzeria)
+(can-go Pizzeria 'north Haas)
+(can-go Dormitory 'west Haas)
+(can-go Soda 'north Kirin)
+(can-go Kirin 'south Soda)
+(can-go Kirin 'north Jail)
+
+;; Some people.
+; MOVED above the add-entry-procedure stuff, to avoid the "The computers
+; seem to be down" message that would occur when hacker enters 61a-lab
+; -- Ryan Stejskal
+
+(define Brian (instantiate person 'Brian BH-Office))
+(define hacker (instantiate person 'hacker 61A-lab))
+(define nasty (instantiate thief 'nasty sproul-plaza))
+(define Federico (instantiate person 'Federico Dormitory))
+(define basettoni (instantiate police 'basettoni Jail Pimentel)) 
+(define sproul-hall-exit
+  (let ((times 0))
+    (lambda ()
+      (set! times (+ times 1))
+      (if (> times 3)
+        (print "Ok, you can go")
+        (error "You can check out any time you'd like, but you can never leave")))))
+
+(define (bh-office-exit)
+  (print "What's your favorite programming language?")
+  (let ((answer (read)))
+    (if (eq? answer 'scheme)
+	(print "Good answer, but my favorite is Logo!")
+	(begin (newline) (bh-office-exit)))))
+    
+
+(ask s-h 'add-entry-procedure
+ (lambda () (print "Miles and miles of students are waiting in line...")))
+(ask s-h 'add-exit-procedure sproul-hall-exit)
+(ask BH-Office 'add-exit-procedure bh-office-exit)
+(ask Noahs 'add-entry-procedure
+ (lambda () (print "Would you like lox with it?")))
+(ask Noahs 'add-exit-procedure
+ (lambda () (print "How about a cinnamon raisin bagel for dessert?")))
+(ask Telegraph-Ave 'add-entry-procedure
+ (lambda () (print "There are tie-dyed shirts as far as you can see...")))
+(ask 61A-Lab 'add-entry-procedure
+ (lambda () (print "The computers seem to be down")))
+(ask 61A-Lab 'add-exit-procedure
+ (lambda () (print "The workstations come back to life just in time.")))
+</file>
+
+<file path="adventure_game/adv.scm">
+;; ADV.SCM
+;; This file contains the definitions for the objects in the adventure
+;; game and some utility procedures.
+(load "tables")
+
+(define-class (basic-object)
+  (instance-vars (properties (make-table)))
+  (method (put property value)
+    (insert! property value properties))
+  (method (get property)
+    (lookup property properties))
+  (default-method (ask self 'get message)))
+
+(define-class (place name)
+  (parent (basic-object))
+  (instance-vars
+   (directions-and-neighbors '())
+   (things '())
+   (people '())
+   (entry-procs '())
+   (exit-procs '()))
+  (initialize
+    (ask self 'put 'place? #t))
+  (method (type) 'place)
+  (method (neighbors) (map cdr directions-and-neighbors))
+  (method (exits) (map car directions-and-neighbors))
+  (method (look-in direction)
+    (let ((pair (assoc direction directions-and-neighbors)))
+      (if (not pair)
+	  '()                     ;; nothing in that direction
+	  (cdr pair))))           ;; return the place object
+  (method (appear new-thing)
+    (if (memq new-thing things)
+	(error "Thing already in this place" (list name new-thing)))
+    (set! things (cons new-thing things))
+    'appeared)
+  (method (may-enter? person) #t)
+  (method (enter new-person)
+    (if (memq new-person people)
+      (error "Person already in this place" (list name new-person)))
+    (set! people (cons new-person people))
+    (for-each (lambda (person) (ask person 'notice new-person)) (cdr people))
+    (for-each (lambda (proc) (proc)) entry-procs)
+    'appeared)
+  (method (gone thing)
+    (if (not (memq thing things))
+	(error "Disappearing thing not here" (list name thing)))
+    (set! things (delete thing things)) 
+    'disappeared)
+  (method (exit person)
+    (for-each (lambda (proc) (proc)) exit-procs)
+    (if (not (memq person people))
+	(error "Disappearing person not here" (list name person)))
+    (set! people (delete person people)) 
+    'disappeared)
+
+  (method (new-neighbor direction neighbor)
+    (if (assoc direction directions-and-neighbors)
+	(error "Direction already assigned a neighbor" (list name direction)))
+    (set! directions-and-neighbors
+	  (cons (cons direction neighbor) directions-and-neighbors))
+    'connected)
+
+  (method (add-entry-procedure proc)
+    (set! entry-procs (cons proc entry-procs)))
+  (method (add-exit-procedure proc)
+    (set! exit-procs (cons proc exit-procs)))
+  (method (remove-entry-procedure proc)
+    (set! entry-procs (delete proc entry-procs)))
+  (method (remove-exit-procedure proc)
+    (set! exit-procs (delete proc exit-procs)))
+  (method (clear-all-procs)
+    (set! exit-procs '())
+    (set! entry-procs '())
+    'cleared) )
+
+(define-class (locked-place name)
+  (parent (place name))
+  (instance-vars (unlocked #f))
+  (method (may-enter? person) unlocked)
+  (method (unlock) (set! unlocked #t)))
+
+(define-class (garage name)
+  (parent (place name))
+  (instance-vars (ticket-car (make-table)))
+  (method (park new-car)
+    (if (memq new-car (ask self 'things))
+      (let ((new-ticket (instantiate ticket))
+            (car-owner (ask new-car 'possessor)))
+        (insert! (ask new-ticket 'serial) new-car ticket-car)
+        (ask car-owner 'lose new-car)
+        (ask self 'gone new-car)
+        (ask self 'appear new-ticket)
+        (ask car-owner 'take new-ticket))
+      (error "Where is your car?")))
+  (method (unpark ticket)
+    (if (and (object? ticket) (eq? (ask ticket 'name) 'ticket))
+      (let* ((serial (ask ticket 'serial))
+             (parked-car (lookup serial ticket-car))
+             (ticket-owner (ask ticket 'possessor)))
+        (if parked-car
+          (begin
+            (ask ticket-owner 'lose ticket)
+            (ask self 'gone ticket)
+            (ask self 'appear parked-car)
+            (ask ticket-owner 'take parked-car)
+            (insert! serial #f ticket-car))
+          (error "Car not in this garage!")))
+      (error "Not a ticket!"))))
+
+(define-class (ticket)
+  (parent (thing 'ticket))
+  (class-vars (next-serial 0))
+  (instance-vars (serial '()))
+  (initialize
+    (set! serial next-serial)
+    (set! next-serial (+ next-serial 1))))
+
+(define-class (hotspot name password)
+  (parent (place name))
+  (instance-vars (connected '()))
+  (method (connect laptop try-password)
+    (if (eq? try-password password)
+      (begin (set! connected (cons laptop connected)) 'connected)
+      (error "invalid password")))
+  (method (gone thing)
+    (if (memq thing connected) (set! connected (delete thing connected)))
+    (usual 'gone thing))
+  (method (surf laptop url)
+    (if (memq laptop connected) (system (string-append "lynx " url)) 'not-connected)))
+
+(define-class (laptop name)
+  (parent (thing name))
+  (method (location)
+    (let ((possessor (ask self 'possessor)))
+      (if (eq? possessor 'no-one)
+        'no-where
+        (ask possessor 'place))))
+  (method (connect try-password)
+    (ask (ask self 'location) 'connect self try-password))
+  (method (surf url)
+    (ask (ask self 'location) 'surf self url)))
+
+(define-class (restaurant name food-type price)
+  (parent (place name))
+  (method (menu)
+    (list (ask food-type 'name) price))
+  (method (sell buyer food-to-buy)
+    (cond ((not (eq? food-type food-to-buy)) #f)
+          ((not (ask buyer 'pay-money (if (eq? 'police (ask buyer 'type)) 0 price))) #f)
+          (else (let ((new-food (instantiate food-type)))
+                  (ask self 'appear new-food)
+                  new-food)))))
+
+(define-class (person name place)
+  (parent (basic-object))
+  (instance-vars
+   (possessions '())
+   (saying ""))
+  (initialize
+    (ask self 'put 'person? #t)
+    (ask self 'put 'strength 50)
+    (ask self 'put 'money 100)
+    (ask place 'enter self))
+  (method (type) 'person)
+  (method (look-around)
+    (map (lambda (obj) (ask obj 'name))
+	 (filter (lambda (thing) (not (eq? thing self)))
+		 (append (ask place 'things) (ask place 'people)))))
+  (method (get-money amount)
+    (ask self 'put 'money (+ (ask self 'money) amount)))
+  (method (pay-money amount)
+    (let ((money (ask self 'money)))
+      (if (>= money amount)
+        (begin
+          (ask self 'put 'money (- money amount))
+          #t)
+        #f)))
+  (method (buy food-type)
+    (let ((bought (ask place 'sell self food-type)))
+      (if bought
+        (ask self 'take bought)
+        #f)))
+  (method (eat)
+      (for-each (lambda (food)
+                  (ask self 'put 'strength (+ (ask self 'strength) (ask food 'calories)))
+                  (ask self 'lose food)
+                  (ask place 'gone food))
+                (filter edible? possessions)))
+  (method (take thing)
+    (cond ((not (thing? thing)) (error "Not a thing" thing))
+	  ((not (memq thing (ask place 'things)))
+	   (error "Thing taken not at this place"
+		  (list (ask place 'name) thing)))
+	  ((memq thing possessions) (error "You already have it!"))
+    ((and
+       (not (eq? (ask thing 'possessor) 'no-one))
+       (not (ask thing 'may-take? self)))
+     (newline)
+     (display "You may not take this thing !")
+     (newline))
+	  (else
+	   (announce-take name thing)
+	   (set! possessions (cons thing possessions))
+	       
+	   ;; If somebody already has this object...
+	   (for-each
+	    (lambda (pers)
+	      (if (and (not (eq? pers self)) ; ignore myself
+		       (memq thing (ask pers 'possessions)))
+		  (begin
+		   (ask pers 'lose thing)
+		   (have-fit pers))))
+	    (ask place 'people))
+	       
+	   (ask thing 'change-possessor self)
+	   'taken)))
+  (method (take-all)
+    (for-each
+      (lambda (avail-thing) (ask self 'take avail-thing))
+      (filter
+        (lambda (thing) (eq? (ask thing 'possessor) 'no-one))
+        (ask place 'things))))
+
+  (method (lose thing)
+    (set! possessions (delete thing possessions))
+    (ask thing 'change-possessor 'no-one)
+    'lost)
+  (method (talk) (print saying))
+  (method (set-talk string) (set! saying string))
+  (method (exits) (ask place 'exits))
+  (method (notice person) (ask self 'talk))
+  (method (go-directly-to new-place)
+    (ask place 'exit self)
+    (announce-move name place new-place)
+    (for-each
+      (lambda (p)
+        (ask place 'gone p)
+        (ask new-place 'appear p))
+      possessions)
+    (set! place new-place)
+    (ask new-place 'enter self))
+  (method (go direction)
+    (let ((new-place (ask place 'look-in direction)))
+      (cond ((null? new-place) (error "Can't go" direction))
+            ((not (ask new-place 'may-enter? self)) (error "Locked place"))
+	    (else (ask self 'go-directly-to new-place))))) )
+
+(define-class (thing name)
+  (parent (basic-object))
+  (instance-vars (possessor 'no-one))
+  (initialize
+    (ask self 'put 'thing? #t))
+  (method (type) 'thing)
+  (method (may-take? requester)
+    (if (>= (ask requester 'strength) (ask possessor 'strength))
+      self
+      #f))
+  (method (change-possessor new-possessor)
+    (set! possessor new-possessor)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Implementation of thieves for part two
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define-class (food name kcal)
+  (parent (thing name))
+  (initialize
+    (ask self 'put 'edible? #t)
+    (ask self 'put 'calories kcal)) )
+
+(define-class (bagel) (parent (food name 25)) (class-vars (name 'bagel)))
+(define-class (coffee) (parent (food name 5)) (class-vars (name 'coffee)))
+(define-class (pizza) (parent (food name 50)) (class-vars (name 'pizza)))
+(define-class (potstickers) (parent (food name 40)) (class-vars (name 'potstickers)))
+
+(define (edible? thing)
+  (ask thing 'edible?))
+
+(define-class (thief name initial-place)
+  (parent (person name initial-place))
+  (instance-vars
+   (behavior 'steal))
+  (initialize
+    (ask self 'put 'strength 100))
+  (method (type) 'thief)
+
+  (method (notice person)
+    (if (eq? behavior 'run)
+      (let ((exits (ask (usual 'place) 'exits)))
+        (if (pair? exits)
+          (ask self 'go (pick-random exits))))
+      (let ((food-things
+        (filter (lambda (thing)
+          (and (edible? thing)
+               (not (eq? (ask thing 'possessor) self))))
+          (ask (usual 'place) 'things))))
+        (if (not (null? food-things))
+            (begin
+             (ask self 'take (car food-things))
+             (set! behavior 'run)
+             (ask self 'notice person)) )))) )
+
+(define-class (police name jail initial-place)
+  (parent (person name initial-place))
+  (initialize
+    (ask self 'put 'strength 200))
+  (method (type) 'police)
+
+  (method (notice person)
+    (if (eq? (ask person 'type) 'thief)
+      (begin
+        (ask self 'set-talk "Crime Does Not Pay")
+        (ask self 'talk)
+        (let ((stolen-things
+                (filter
+                  (lambda (thing) (eq? (ask thing 'possessor) person))
+                  (ask (usual 'place) 'things))))
+          (for-each (lambda (thing) (ask self 'take thing)) stolen-things)
+          (ask person 'go-directly-to jail))))) )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Utility procedures
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; this next procedure is useful for moving around
+
+(define (move-loop who)
+  (newline)
+  (print (ask who 'exits))
+  (display "?  > ")
+  (let ((dir (read)))
+    (if (equal? dir 'stop)
+	(newline)
+	(begin (print (ask who 'go dir))
+	       (move-loop who)))))
+
+
+;; One-way paths connect individual places.
+
+(define (can-go from direction to)
+  (ask from 'new-neighbor direction to))
+
+
+(define (announce-take name thing)
+  (newline)
+  (display name)
+  (display " took ")
+  (display (ask thing 'name))
+  (newline))
+
+(define (announce-move name old-place new-place)
+  (newline)
+  (newline)
+  (display name)
+  (display " moved from ")
+  (display (ask old-place 'name))
+  (display " to ")
+  (display (ask new-place 'name))
+  (newline))
+
+(define (have-fit p)
+  (newline)
+  (display "Yaaah! ")
+  (display (ask p 'name))
+  (display " is upset!")
+  (newline))
+
+
+(define (pick-random set)
+  (nth (random (length set)) set))
+
+(define (delete thing stuff)
+  (cond ((null? stuff) '())
+	((eq? thing (car stuff)) (cdr stuff))
+	(else (cons (car stuff) (delete thing (cdr stuff)))) ))
+
+(define (person? obj)
+  (and (procedure? obj) (ask obj 'person?)))
+
+(define (thing? obj)
+  (and (procedure? obj) (ask obj 'thing?)))
+
+(define (place? obj)
+  (and (procedure? obj) (ask obj 'place?)))
+
+(define (name obj attr)
+  (let ((stuff (ask obj attr))
+        (give-name (lambda (o) (if (object? o) (ask o 'name) o))))
+    (if (list? stuff)
+      (map give-name stuff)
+      (give-name stuff))))
+</file>
+
+<file path="adventure_game/obj.scm">
+;;; obj.scm version 4.0 5/18/2000
+;;; -- implementation of the object-oriented syntax
+;; By Matt Wright, based on a handout from MIT
+;; Revised for STk by Brian Gaeke - removed scm and procedure->macro
+
+;;; Utilities
+
+;; MAKNAM: create a new symbol whose name is the concatenation of the 
+;; names of those in the symbol list SYMBOLS.
+(define (maknam . symbols)
+  (string->symbol (apply string-append (map symbol->string symbols))))
+
+;; ASK: send a message to an object
+
+; The dot in the first line of the definition of ASK, below, makes it
+; take a variable number of arguments.  The first argument is associated
+; with the formal parameter OBJECT; the second with MESSAGE; any extra
+; actual arguments are put in a list, and that list is associated with
+; the formal parameter ARGS.  (If there are only two actual args, then
+; ARGS will be the empty list.)
+
+; APPLY takes two arguments, a procedure and a list, and applies the
+; procedure to the things in the list, which are used as actual
+; argument values.
+
+(define (ask object message . args)
+  (if (object? object)
+      (let ((method (object message)))
+	(if (method? method)
+	    (apply method args)
+	    (error "No method " message " in class " (cadr method))))
+      (error "Not an object: " object) ))
+
+; An object is a compound procedure with a single argument.
+; (Really, an object is a dispatch procedure, but we can't look inside
+; the definition to make sure it always returns a procedure or
+; a NO-METHOD marker.)
+; We use the STk-specific WITH-MODULE to make sure we get the built-in
+; version of PROCEDURE-BODY (also an STkism), rather than an override.
+(define (object? obj)
+  (and (procedure? obj)
+        (let ((lambda-exp ((with-module scheme procedure-body) obj)))
+	 (and lambda-exp
+	      (let ((args (cadr lambda-exp)))
+		(and (list? args)
+		     (= 1 (length args)) ))))))
+
+(define (no-method name)
+  (list 'no-method name))
+
+(define (no-method? x)
+  (if (pair? x)
+      (eq? (car x) 'no-method)
+      #f))
+
+(define (method? x)
+  (not (no-method? x)))
+
+
+;; INSTANTIATE and INSTANTIATE-PARENT:  Create an instance of a class
+
+; The difference is that only INSTANTIATE initializes the new object
+
+(define (instantiate class . arguments)
+  (let ((new-instance (apply (class 'instantiate) arguments)))
+    (ask new-instance 'initialize new-instance)
+    new-instance))
+
+(define (instantiate-parent class . arguments)
+  (apply (class 'instantiate) arguments))
+
+;; GET-METHOD: Send a message to several objects and return the first
+;; method found (for multiple inheritance)
+
+(define (get-method give-up-name message . objects)
+  (if (null? objects)
+      (no-method give-up-name)
+      (let ((method ((car objects) message)))
+	(if (method? method)
+	    method
+	    (apply get-method (cons give-up-name
+				    (cons message (cdr objects)) ))))))
+
+
+
+;; USUAL: Invoke a parent's method
+;; Note: The 'send-usual-to-parent method is put in automatically by
+;; define-class.
+
+(define-macro (usual . args)
+	     `(ask dispatch 'send-usual-to-parent . ,args))
+
+
+;; DEFINE-CLASS:  Create a new class.
+
+; DEFINE-CLASS is a special form.  When you type (define-class body...)
+; it's as if you typed (make-definitions (quote body...)).  In other
+; words, the argument to DEFINE-CLASS isn't evaluated.  This makes sense
+; because the argument isn't Scheme syntax, but rather is the special
+; object-oriented programming language we're defining.
+; Make-definitions transforms the OOP notation into a standard Scheme
+; expression, then uses EVAL to evaluate the result.  (You'll see EVAL
+; again in chapter 4 with the metacircular evaluator.)
+
+; When you define a class named THING, for example, two global Scheme
+; variables are created.  The variable THING has as its value the
+; procedure that represents the class.  This procedure is invoked by
+; INSTANTIATE to create instances of the class.  A second variable,
+; THING-DEFINITION, has as its value the text of the Scheme expression
+; that defines THING.  This text is used only by SHOW-CLASS, the
+; procedure that lets you examine the result of the OOP-to-Scheme
+; translation process.
+
+(define-macro (define-class . body) (make-definitions body))
+
+(define (make-definitions form)
+  (let ((definition (translate form)))
+    (eval `(define ,(maknam (class-name form) '-definition) ',definition))
+    (eval definition)
+    (list 'quote (class-name form))))
+
+(define (show-class name)
+  (eval (maknam name '-definition)) )
+
+; TRANSLATE does all the work of DEFINE-CLASS.
+; The backquote operator (`) works just like regular quote (') except
+; that expressions proceeded by a comma are evaluated.  Also, expressions
+; proceeded by ",@" evaluate to lists; the lists are inserted into the
+; text without the outermost level of parentheses.
+
+(define (translate form)
+  (cond ((null? form) (error "Define-class: empty body"))
+	((not (null? (obj-filter form (lambda (x) (not (pair? x))))))
+	 (error "Each argument to define-class must be a list"))
+	((not (null? (extra-clauses form)))
+	 (error "Unrecognized clause in define-class:" (extra-clauses form)))
+	(else 
+	 `(define ,(class-name form)
+	    (let ,(class-var-bindings form)
+	      (lambda (class-message)
+		(cond
+		 ,@(class-variable-methods form)
+		 ((eq? class-message 'instantiate)
+		  (lambda ,(instantiation-vars form)
+		    (let ((self '())
+			  ,@(parent-let-list form)
+			  ,@(instance-vars-let-list form))
+		      (define (dispatch message)
+			(cond
+			 ,(init-clause form)
+			 ,(usual-clause form)
+			 ,@(method-clauses form)
+			 ,@(local-variable-methods form)
+			 ,(else-clause form) ))
+		      dispatch )))
+		 (else (error "Bad message to class" class-message)) )))))))
+
+(define *legal-clauses*
+  '(instance-vars class-vars method default-method parent initialize))
+
+(define (extra-clauses form)
+  (obj-filter (cdr form)
+	      (lambda (x) (null? (member (car x) *legal-clauses*)))))
+
+(define class-name caar)
+
+(define (class-var-bindings form)
+  (let ((classvar-clause (find-a-clause 'class-vars form)))
+    (if (null? classvar-clause)
+	'()
+	(cdr classvar-clause) )))
+
+(define instantiation-vars cdar)
+
+(define (parent-let-list form)
+  (let ((parent-clause (find-a-clause 'parent form)))
+    (if (null? parent-clause)
+	'()
+	(map (lambda (parent-and-args)
+	       (list (maknam 'my- (car parent-and-args))
+		     (cons 'instantiate-parent parent-and-args)))
+	     (cdr parent-clause)))))
+
+(define (instance-vars-let-list form)
+  (let ((instance-vars-clause (find-a-clause 'instance-vars form)))
+    (if (null? instance-vars-clause)
+	'()
+	(cdr instance-vars-clause))))
+
+(define (init-clause form)
+  (define (parent-initialization form)
+    (let ((parent-clause (find-a-clause 'parent form)))
+      (if (null? parent-clause)
+	  '()
+	  (map
+	   (lambda (parent-and-args)
+	     `(ask ,(maknam 'my- (car parent-and-args)) 'initialize self) )
+	   (cdr parent-clause) ))))
+  (define (my-initialization form)
+    (let ((init-clause (find-a-clause 'initialize form)))
+      (if (null? init-clause) '()
+	  (cdr init-clause))))
+  (define (init-body form)
+    (append (parent-initialization form)
+	    (my-initialization form) ))
+
+  `((eq? message 'initialize)
+    (lambda (value-for-self)
+      (set! self value-for-self)
+      ,@(init-body form) )))
+
+(define (variable-list var-type form)
+  (let ((clause (find-a-clause var-type form)))
+    (if (null? clause)
+	'()
+	(map car (cdr clause)) )))
+
+(define (class-variable-methods form)
+  (cons `((eq? class-message 'class-name) (lambda () ',(class-name form)))
+	(map (lambda (variable)
+	       `((eq? class-message ',variable) (lambda () ,variable)))
+	     (variable-list 'class-vars form))))
+
+(define (local-variable-methods form)
+  (cons `((eq? message 'class-name) (lambda () ',(class-name form)))
+	(map (lambda (variable)
+	       `((eq? message ',variable) (lambda () ,variable)))
+	     (append (cdr (car form))
+		     (variable-list 'instance-vars form)
+		     (variable-list 'class-vars form)))))
+
+(define (method-clauses form)
+  (map
+   (lambda (method-defn)
+     (let ((this-message (car (cadr method-defn)))
+	   (args (cdr (cadr method-defn)))
+	   (body (cddr method-defn)))
+       `((eq? message ',this-message)
+	 (lambda ,args ,@body))))
+   (obj-filter (cdr form) (lambda (x) (eq? (car x) 'method))) ))
+
+(define (parent-list form)
+  (let ((parent-clause (find-a-clause 'parent form)))
+    (if (null? parent-clause)
+	'()
+	(map (lambda (class) (maknam 'my- class))
+	     (map car (cdr parent-clause))))))
+
+(define (usual-clause form)
+  (let ((parent-clause (find-a-clause 'parent form)))
+    (if (null? parent-clause)
+	`((eq? message 'send-usual-to-parent)
+	  (error "Can't use USUAL without a parent." ',(class-name form)))
+	`((eq? message 'send-usual-to-parent)
+	  (lambda (message . args)
+	    (let ((method (get-method ',(class-name form)
+				      message
+				      ,@(parent-list form))))
+	      (if (method? method)
+		  (apply method args)
+		  (error "No USUAL method" message ',(class-name form)) )))))))
+
+(define (else-clause form)
+  (let ((parent-clause (find-a-clause 'parent form))
+	(default-method (find-a-clause 'default-method form)))
+    (cond
+     ((and (null? parent-clause) (null? default-method))
+      `(else (no-method ',(class-name form))))
+     ((null? parent-clause)
+      `(else (lambda args ,@(cdr default-method))))
+     ((null? default-method)
+      `(else (get-method ',(class-name form) message ,@(parent-list form))) )
+     (else
+      `(else (let ((method (get-method ',(class-name form)
+				       message
+				       ,@(parent-list form))))
+	       (if (method? method)
+		   method
+		   (lambda args ,@(cdr default-method)) )))))))
+
+(define (find-a-clause clause-name form)
+  (let ((clauses (obj-filter (cdr form)
+			     (lambda (x) (eq? (car x) clause-name)))))
+    (cond ((null? clauses) '())
+	  ((null? (cdr clauses)) (car clauses))
+	  (else (error "Error in define-class: too many "
+		       clause-name "clauses.")) )))
+
+(define (obj-filter l pred)
+  (cond ((null? l) '())
+	((pred (car l))
+	 (cons (car l) (obj-filter (cdr l) pred)))
+	(else (obj-filter (cdr l) pred))))
+
+(provide "obj")
+</file>
+
+<file path="adventure_game/small-world.scm">
+;;; small-world.scm
+;;; Miniature game world for debugging the CS61A adventure game project.
+;;; You can load this instead of adv-world.scm, and reload it quickly
+;;; whenever you change a class.
+
+;;; How to use this file:
+;;; If, for example, your person class doesn't work, and you do something
+;;; like (define Matt (instantiate person 'Matt)), and then fix your
+;;; person class definition, Matt is still bound to the faulty person
+;;; object from before.  However, reloading this file whenever you
+;;; change something should redefine everything in your world with the
+;;; currently loaded (i.e. most recent) versions of your classes.
+
+(define 61A-Lab (instantiate place '61A-Lab))
+(define Lounge (instantiate place 'Lounge))
+(can-go 61A-Lab 'up Lounge)
+(can-go Lounge 'down 61A-Lab)
+;;;  Hopefully you'll see more of the world than this in real life
+;;;  while you're doing the project!
+
+(define homework-box (instantiate thing 'homework-box))
+(ask 61A-Lab 'appear homework-box)
+
+(define Coke (instantiate thing 'Coke))
+(ask Lounge 'appear Coke)
+
+(define laba (instantiate person 'Lab-assistant 61A-Lab))
+</file>
+
+<file path="adventure_game/tables.scm">
+;;; Section 3.3.3 -- Tables
+
+;;; One-dimensional tables
+
+(define (lookup key table)
+  (let ((record (assoc key (cdr table))))
+    (if (not record)
+        #f
+        (cdr record))))
+
+(define (insert! key value table)
+  (let ((record (assoc key (cdr table))))
+    (if (not record)
+        (set-cdr! table
+                  (cons (cons key value) (cdr table)))
+        (set-cdr! record value)))
+  'ok)
+
+(define (make-table)
+  (list '*table*))
+</file>
+
+</files>
