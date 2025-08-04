@@ -1,0 +1,1029 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+The content has been processed where security check has been disabled.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Security check has been disabled - content may contain sensitive information
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+blackjack/
+  joker/
+    assert.scm
+    best-total.scm
+    dealer-sensitive.scm
+    higher-order.scm
+    majority-strategy.scm
+    play-n.scm
+    reckless.scm
+    stop-at-17.scm
+    stop-at.scm
+    suit-strategy.scm
+    test_all.sh
+    test-best-total.scm
+    test-dealer-sensitive.scm
+    test-majority-strategy.scm
+    test-reckless.scm
+    test-stop-at-17.scm
+    test-stop-at.scm
+    test-suit-strategy.scm
+    test-valentine-strategy.scm
+    twenty-one.scm
+    valentine-strategy.scm
+  normal/
+    assert.scm
+    best-total.scm
+    dealer-sensitive.scm
+    higher-order.scm
+    majority-strategy.scm
+    play-n.scm
+    reckless.scm
+    stop-at-17.scm
+    stop-at.scm
+    suit-strategy.scm
+    test_all.sh
+    test-best-total.scm
+    test-dealer-sensitive.scm
+    test-majority-strategy.scm
+    test-reckless.scm
+    test-stop-at-17.scm
+    test-stop-at.scm
+    test-suit-strategy.scm
+    test-valentine-strategy.scm
+    twenty-one.scm
+    valentine-strategy.scm
+  README.txt
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="blackjack/joker/assert.scm">
+(define (assert comparison actual expected msg)
+  (if (not (comparison actual expected))
+    (display (format #f "ERROR! ~S: actual ~A expected ~A\n" msg actual expected))))
+</file>
+
+<file path="blackjack/joker/best-total.scm">
+(load "higher-order")
+
+(define (best-total hand)
+  (let ((total (bt hand 0)))
+    (if (less-than-21? total) total 999)))
+
+(define (bt hand total)
+  (if (empty? hand)
+    total
+    (max-less-than-21
+      (map
+        (try-bt-with-points (butfirst hand) total)
+        (card-possible-points (first hand))))))
+
+(define (try-bt-with-points hand total)
+  (lambda (points) (bt hand (+ total points))))
+
+(define (less-than-21? num) (<= num 21))
+(define (max-number numbers)
+  (reduce 0 (lambda (total num) (max num total)) numbers))
+
+(define (max-less-than-21 numbers)
+  (let ((numbers-less-than-21 (filter less-than-21? numbers)))
+    (cond ((empty? numbers) 0)
+          ((empty? numbers-less-than-21) (max-number numbers))
+          (else (max-number numbers-less-than-21)))))
+
+(define (card-possible-points card)
+  (cond ((card-joker? card) '(1 2 3 4 5 6 7 8 9 10 11))
+        ((card-ace? card) '(1 11))
+        (else (sentence (card-points card)))))
+
+(define (card-points card) (if (card-face? card) 10 (card-value card)))
+(define (card-value card) (butlast card))
+(define (card-ace? card) (equal? (card-value card) 'a))
+(define (card-face? card) (member? (card-value card) '(j q k)))
+(define (card-joker? card) (equal? card 'jr))
+</file>
+
+<file path="blackjack/joker/dealer-sensitive.scm">
+(load "best-total")
+
+(define (dealer-sensitive hand dealer-card)
+  (let ((player-points (best-total hand))
+        (dealer-points (card-points dealer-card)))
+    (or
+      (and (> dealer-points 6) (< player-points 17))
+      (and (<= dealer-points 6) (< player-points 12)))))
+</file>
+
+<file path="blackjack/joker/higher-order.scm">
+(define (map func sent)
+  (if (empty? sent)
+    '()
+    (sentence (func (first sent)) (map func (butfirst sent)))))
+
+(define (reduce total func sent)
+  (if (empty? sent)
+    total
+    (reduce (func total (first sent)) func (butfirst sent))))
+
+(define (filter pred sent)
+  (if (empty? sent)
+    '()
+    (if (pred (first sent))
+      (sentence (first sent) (filter pred (butfirst sent)))
+      (filter pred (butfirst sent)))))
+
+(define (any? pred sent)
+  (cond ((empty? sent) #f)
+        ((pred (first sent)) #t)
+        (else (any? pred (butfirst sent)))))
+
+(define (compose func1 func2)
+  (lambda (x) (func1 (func2 x))))
+
+(define (sum numbers)
+  (reduce 0 + numbers))
+</file>
+
+<file path="blackjack/joker/majority-strategy.scm">
+(load "higher-order")
+
+; NB: bool-num and 1 are used because apparently you can't have a sentence of
+; booleans so i am tricking it into a sequence of binary digits
+
+(define (majority-strategy first-strategy second-strategy third-strategy)
+  (lambda (hand dealer-card)
+    (majority-of? 1 (sentence
+                      (bool-num (first-strategy hand dealer-card))
+                      (bool-num (second-strategy hand dealer-card))
+                      (bool-num (third-strategy hand dealer-card))))))
+
+(define (bool-num bool)
+  (if bool 1 0))
+
+(define (count-equal-to elem sent)
+  (reduce 0
+          (lambda (total current-elem)
+            (if (equal? elem current-elem)
+              (+ 1 total)
+              total))
+          sent))
+
+(define (majority-of? elem sent)
+  (> (count-equal-to elem sent) (/ (count sent) 2)))
+</file>
+
+<file path="blackjack/joker/play-n.scm">
+(load "twenty-one")
+
+(define (play-n strategy n)
+  (if (= n 0)
+    0
+    (+ (twenty-one strategy) (play-n strategy (- n 1)))))
+</file>
+
+<file path="blackjack/joker/reckless.scm">
+(define (reckless strategy)
+  (define (hit? hand dealer-card) (strategy hand dealer-card))
+  (define (previous-hit? hand dealer-card)
+    (and
+      (not (empty? hand))
+      (strategy (butlast hand) dealer-card)))
+  (lambda (hand dealer-card) (or (hit? hand dealer-card) (previous-hit? hand dealer-card))))
+</file>
+
+<file path="blackjack/joker/stop-at-17.scm">
+(load "best-total")
+
+(define (stop-at-17 hand dealer-card)
+  (< (best-total hand) 17))
+</file>
+
+<file path="blackjack/joker/stop-at.scm">
+(load "best-total")
+
+(define (stop-at n)
+  (lambda (hand dealer-card)
+    (< (best-total hand) n)))
+</file>
+
+<file path="blackjack/joker/suit-strategy.scm">
+(load "higher-order")
+
+(define (suit-strategy suit has-suit-strategy hasnt-suit-strategy)
+  (lambda (hand dealer-card)
+    (if (suit-in-hand? suit hand)
+      (has-suit-strategy hand dealer-card)
+      (hasnt-suit-strategy hand dealer-card))))
+
+(define (suit? suit)
+  (lambda (card) (equal? (last card) suit)))
+
+(define (suit-in-hand? suit hand)
+  (any? (suit? suit) hand))
+</file>
+
+<file path="blackjack/joker/test_all.sh">
+#!/bin/bash
+
+echo "tests:"
+for file in test-*.scm
+do
+    echo "$file"
+    stk $file
+done
+</file>
+
+<file path="blackjack/joker/test-best-total.scm">
+(load "load-simply")
+(load "best-total")
+(load "assert")
+
+;(trace best-total)
+;(trace bt)
+
+; single card
+(assert = (best-total '()) 0 "empty hand -> 0")
+(assert = (best-total '(1s)) 1 "1s -> 1")
+(assert = (best-total '(2s)) 2 "2s -> 2")
+(assert = (best-total '(10s)) 10 "10c -> 10")
+(assert = (best-total '(js)) 10 "js -> 10")
+(assert = (best-total '(qs)) 10 "qs -> 10")
+(assert = (best-total '(ks)) 10 "ks -> 10")
+(assert = (best-total '(as)) 11 "as -> 11")
+
+; many cards
+(assert = (best-total '(1s 2s)) 3 "1s 2s -> 3")
+(assert = (best-total '(10s 10s)) 20 "10s 10s -> 20")
+(assert = (best-total '(5s 7s 3s)) 15 "5s 7s 3s -> 15")
+(assert = (best-total '(7s 3s 5s)) 15 "7s 3s 5s -> 15")
+(assert = (best-total '(10s as)) 21 "10s as -> 21")
+
+; busting
+(assert = (best-total '(5s 7s 10s)) 999 "5s 7s 10s -> 999")
+(assert = (best-total '(10s 5s 7s)) 999 "10s 5s 7s -> 999")
+(assert = (best-total '(10s 10c 5s 5h 5c)) 999 "10s 10c 5s 5h 5c -> 999")
+
+; ace
+(assert = (best-total '(10s 9s as)) 20 "10s 9s as -> 20")
+(assert = (best-total '(as 10s 9s)) 20 "as 10s 9s -> 20")
+(assert = (best-total '(as as 10s 9s)) 21 "as as 10s 9s -> 21")
+(assert = (best-total '(as as as as)) 14 "as as as as -> 14")
+(assert = (best-total '(10s as as)) 12 "10s as as -> 12")
+(assert = (best-total '(as as as as as as as as as as as as)) 12 "as as as as as as as as as as as as-> 12")
+(assert = (best-total '(10s 10s as as)) 999 "10s 10s as as -> 999")
+
+; book examples
+(assert = (best-total '(ad 8s)) 19 "ad 8s -> 19")
+(assert = (best-total '(ad 8s 5h)) 14 "ad 8s 5h -> 14")
+(assert = (best-total '(ad as 9h)) 21 "ad as 9h -> 21")
+
+; joker
+(assert = (best-total '(jr)) 11 "jr -> 11")
+(assert = (best-total '(jr 10s)) 21 "jr 10s -> 21")
+(assert = (best-total '(jr 10s 5s)) 21 "jr 10s 5s -> 21")
+(assert = (best-total '(jr jr 10s 5s)) 21 "jr jr 10s 5s -> 21")
+(assert = (best-total '(jr 10s as)) 21 "jr as 10s -> 21")
+(assert = (best-total '(jr as ah 10s)) 21 "jr as ah 10 -> 21")
+(assert = (best-total '(jr 10s 5h 6h)) 999 "jr as ah 10 -> 999")
+
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/joker/test-dealer-sensitive.scm">
+(load "load-simply")
+(load "dealer-sensitive")
+(load "assert")
+
+(assert equal? (dealer-sensitive '(as) '2s) #t "as (2s) -> #t")
+(assert equal? (dealer-sensitive '(as) '6s) #t "as (6s) -> #t")
+(assert equal? (dealer-sensitive '(as) '7s) #t "as (7s) -> #t")
+(assert equal? (dealer-sensitive '(as) '10s) #t "as (10s) -> #t")
+(assert equal? (dealer-sensitive '(as) 'ks) #t "as (ks) -> #t")
+(assert equal? (dealer-sensitive '(as) 'as) #t "as (as) -> #t")
+
+(assert equal? (dealer-sensitive '(10s 2s) '2s) #f "10s 2s (2s) -> #f")
+(assert equal? (dealer-sensitive '(10s 2s) '6s) #f "10s 2s (6s) -> #f")
+(assert equal? (dealer-sensitive '(10s 2s) '7s) #t "10s 2s (7s) -> #t")
+(assert equal? (dealer-sensitive '(10s 2s) '10s) #t "10s 2s (10s) -> #t")
+(assert equal? (dealer-sensitive '(10s 2s) 'ks) #t "10s 2s (ks) -> #t")
+(assert equal? (dealer-sensitive '(10s 2s) 'as) #t "10s 2s (as) -> #t")
+
+(assert equal? (dealer-sensitive '(10s 7s) '2s) #f "10s 2s (2s) -> #f")
+(assert equal? (dealer-sensitive '(10s 7s) '6s) #f "10s 2s (6s) -> #f")
+(assert equal? (dealer-sensitive '(10s 7s) '7s) #f "10s 2s (7s) -> #f")
+(assert equal? (dealer-sensitive '(10s 7s) '10s) #f "10s 2s (10s) -> #f")
+(assert equal? (dealer-sensitive '(10s 7s) 'ks) #f "10s 2s (ks) -> #f")
+(assert equal? (dealer-sensitive '(10s 7s) 'as) #f "10s 2s (as) -> #f")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/joker/test-majority-strategy.scm">
+(load "load-simply")
+(load "majority-strategy")
+(load "assert")
+
+(define (hit hand dealer-card) #t)
+(define (stand hand dealer-card) #f)
+
+(assert equal? ((majority-strategy stand stand stand) '() 'as) #f "#f #f #f -> #f")
+(assert equal? ((majority-strategy hit stand stand) '() 'as) #f "#t #f #f -> #f")
+(assert equal? ((majority-strategy hit hit stand) '() 'as) #t "#t #t #f -> #t")
+(assert equal? ((majority-strategy hit hit hit) '() 'as) #t "#t #t #t -> #t")
+
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/joker/test-reckless.scm">
+(load "load-simply")
+(load "reckless")
+(load "assert")
+
+(define (always-hit hand dealer-card) #t)
+(define (always-stand hand dealer-card) #f)
+(define (hit-on-empty-hand hand dealer-card) (empty? hand))
+
+(assert equal? ((reckless always-hit) '() 'as) #t "hit if the original strategy hits (empty hand)")
+(assert equal? ((reckless always-hit) '(10s 10c 10h) 'as) #t "hit if the original strategy hits (busting hand)")
+(assert equal? ((reckless always-stand) '() 'as) #f "stand if the original strategy stands and there was no previous turn")
+(assert equal? ((reckless hit-on-empty-hand) '(10c) 'as) #t "hit if the original strategy stands and previous turn it hit")
+(assert equal? ((reckless always-stand) '(10c) 'as) #f "stand if the original strategy stands and previous turn it didnt hit")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/joker/test-stop-at-17.scm">
+(load "load-simply")
+(load "stop-at-17")
+(load "assert")
+
+(assert equal? (stop-at-17 '() 'as) #t "empty hand -> #t")
+(assert equal? (stop-at-17 '(2s) 'as) #t "2s -> #t")
+(assert equal? (stop-at-17 '(10s 6s) 'as) #t "10s 6s -> #t")
+(assert equal? (stop-at-17 '(10s 7s) 'as) #f "10s 7s -> #f")
+(assert equal? (stop-at-17 '(as 5s) 'as) #t "as 5s -> #t") 
+(assert equal? (stop-at-17 '(as 6s) 'as) #f "as 6s -> #f") 
+(assert equal? (stop-at-17 '(3s 4s 5s as) 'as) #t "3s 4s 5s as -> #t") 
+(assert equal? (stop-at-17 '(4h 10h 10s) 'as) #f "4h 10h 10s -> #f")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/joker/test-stop-at.scm">
+(load "load-simply")
+(load "stop-at")
+(load "assert")
+
+(define stop-at-0 (stop-at 0))
+(assert equal? (stop-at-0 '() 'as) #f "empty hand -> #f")
+(assert equal? (stop-at-0 '(2s) 'as) #f "2s -> #f")
+
+(define stop-at-3 (stop-at 3))
+(assert equal? (stop-at-3 '() 'as) #t "empty hand -> #t")
+(assert equal? (stop-at-3 '(2s) 'as) #t "2s -> #t")
+(assert equal? (stop-at-3 '(3s) 'as) #f "3s -> #f")
+(assert equal? (stop-at-3 '(4s) 'as) #f "4s -> #f")
+
+(define stop-at-17 (stop-at 17))
+(assert equal? (stop-at-17 '() 'as) #t "empty hand -> #t")
+(assert equal? (stop-at-17 '(2s) 'as) #t "2s -> #t")
+(assert equal? (stop-at-17 '(10s 6s) 'as) #t "10s 6s -> #t")
+(assert equal? (stop-at-17 '(10s 7s) 'as) #f "10s 7s -> #f")
+(assert equal? (stop-at-17 '(as 5s) 'as) #t "as 5s -> #t") 
+(assert equal? (stop-at-17 '(as 6s) 'as) #f "as 6s -> #f") 
+(assert equal? (stop-at-17 '(3s 4s 5s as) 'as) #t "3s 4s 5s as -> #t") 
+(assert equal? (stop-at-17 '(4h 10h 10s) 'as) #f "4h 10h 10s -> #f")
+
+(define stop-at-100 (stop-at 100))
+(assert equal? (stop-at-100 '() 'as) #t "empty hand -> #t")
+(assert equal? (stop-at-100 '(10s 7s) 'as) #t "10s 7s -> #t")
+(assert equal? (stop-at-100 '(10s as) 'as) #t "10s as -> #t")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/joker/test-suit-strategy.scm">
+(load "load-simply")
+(load "suit-strategy")
+(load "stop-at")
+(load "assert")
+
+(define (valentine-strategy hand dealer-card)
+  ((suit-strategy 'h (stop-at 19) (stop-at 17)) hand dealer-card))
+
+(assert equal? (valentine-strategy '(10s 6s) 'as) #t "less than 17 always hits")
+(assert equal? (valentine-strategy '(10s 7h) 'as) #t "17 hits with hearts")
+(assert equal? (valentine-strategy '(10s 8h) 'as) #t "18 hits with hearts")
+(assert equal? (valentine-strategy '(10s 7c) 'as) #f "17 stands without hearts")
+(assert equal? (valentine-strategy '(10s 9h) 'as) #f "19 always stands")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/joker/test-valentine-strategy.scm">
+(load "load-simply")
+(load "valentine-strategy")
+(load "assert")
+
+(assert equal? (valentine-strategy '(10s 6s) 'as) #t "less than 17 always hits")
+(assert equal? (valentine-strategy '(10s 7h) 'as) #t "17 hits with hearts")
+(assert equal? (valentine-strategy '(10s 8h) 'as) #t "18 hits with hearts")
+(assert equal? (valentine-strategy '(10s 7c) 'as) #f "17 stands without hearts")
+(assert equal? (valentine-strategy '(10s 9h) 'as) #f "19 always stands")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/joker/twenty-one.scm">
+(load "best-total")
+
+(define (twenty-one strategy)
+  (define (play-dealer customer-hand dealer-hand-so-far rest-of-deck)
+    (cond ((> (best-total dealer-hand-so-far) 21) 1)
+	  ((< (best-total dealer-hand-so-far) 17)
+	   (play-dealer customer-hand
+			(se dealer-hand-so-far (first rest-of-deck))
+			(bf rest-of-deck)))
+	  ((< (best-total customer-hand) (best-total dealer-hand-so-far)) -1)
+	  ((= (best-total customer-hand) (best-total dealer-hand-so-far)) 0)
+	  (else 1)))
+
+  (define (play-customer customer-hand-so-far dealer-up-card rest-of-deck)
+    (cond ((> (best-total customer-hand-so-far) 21) -1)
+	  ((strategy customer-hand-so-far dealer-up-card)
+	   (play-customer (se customer-hand-so-far (first rest-of-deck))
+			  dealer-up-card
+			  (bf rest-of-deck)))
+	  (else
+	   (play-dealer customer-hand-so-far
+			(se dealer-up-card (first rest-of-deck))
+			(bf rest-of-deck)))))
+
+  (let ((deck (make-deck)))
+    (play-customer (se (first deck) (first (bf deck)))
+		   (first (bf (bf deck)))
+		   (bf (bf (bf deck))))) )
+
+(define (make-ordered-deck)
+  (define (make-suit s)
+    (every (lambda (rank) (word rank s)) '(A 2 3 4 5 6 7 8 9 10 J Q K)) )
+  (se (make-suit 'H) (make-suit 'S) (make-suit 'D) (make-suit 'C) 'JR 'JR) )
+
+(define (make-deck)
+  (define (shuffle deck size)
+    (define (move-card in out which)
+      (if (= which 0)
+	  (se (first in) (shuffle (se (bf in) out) (- size 1)))
+	  (move-card (bf in) (se (first in) out) (- which 1)) ))
+    (if (= size 0)
+	deck
+    	(move-card deck '() (random size)) ))
+  (shuffle (make-ordered-deck) 54) )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;                                      32
+</file>
+
+<file path="blackjack/joker/valentine-strategy.scm">
+(load "best-total")
+
+(define (valentine-strategy hand dealer-card)
+  (let ((player-points (best-total hand)))
+    (or
+      (and (has-hearts? hand) (< player-points 19))
+      (< player-points 17))))
+
+
+(define (has-hearts? hand)
+  (any? (lambda (card) (heart? card)) hand))
+
+(define (heart? card)
+  (equal? (last card) 'h))
+</file>
+
+<file path="blackjack/normal/assert.scm">
+(define (assert comparison actual expected msg)
+  (if (not (comparison actual expected))
+    (display (format #f "ERROR! ~S: actual ~A expected ~A\n" msg actual expected))))
+</file>
+
+<file path="blackjack/normal/best-total.scm">
+(load "higher-order")
+
+(define (best-total hand)
+  (let ((total-non-aces (sum (map card-points (non-aces hand)))))
+    (add-n-aces-to (count (aces hand)) total-non-aces)))
+      
+
+(define (valid-total? total)
+  (<= total 21))
+
+(define (card-points card)
+    (cond ((face-card? card) 10)
+          ((ace? card) 11)
+          (else (card-value card))))
+
+(define (card-value card)
+  (butlast card))
+
+(define (add-n-aces-to number-of-aces total)
+  (let ((highest-total (+ total (* number-of-aces 11))))
+    (if (or (valid-total? highest-total) (= 0 number-of-aces))
+      highest-total
+      (add-n-aces-to (- number-of-aces 1) (+ total 1)))))
+
+(define (non-aces cards)
+  (filter (compose not ace?) cards))
+
+(define (aces cards)
+  (filter ace? cards))
+
+(define (ace? card)
+  (equal? (card-value card) 'a))
+
+(define (face-card? card)
+  (member? (card-value card) '(j q k)))
+
+; RECURSIVE
+;(define (best-total hand)
+;  (bt hand 0))
+;
+;(define (bt hand total)
+;    (cond ((not (valid-total? total)) 0)
+;          ((empty? hand) total)
+;          (else (let ((card (first hand))
+;                      (rest (butfirst hand)))
+;                  (if (ace? card)
+;                    (max (bt rest (+ total 1)) (bt rest (+ total 11)))
+;                    (bt rest (+ total (card-points card))))))))
+;
+</file>
+
+<file path="blackjack/normal/dealer-sensitive.scm">
+(load "best-total")
+
+(define (dealer-sensitive hand dealer-card)
+  (let ((player-points (best-total hand))
+        (dealer-points (card-points dealer-card)))
+    (or
+      (and (> dealer-points 6) (< player-points 17))
+      (and (<= dealer-points 6) (< player-points 12)))))
+</file>
+
+<file path="blackjack/normal/higher-order.scm">
+(define (map func sent)
+  (if (empty? sent)
+    '()
+    (sentence (func (first sent)) (map func (butfirst sent)))))
+
+(define (reduce total func sent)
+  (if (empty? sent)
+    total
+    (reduce (func total (first sent)) func (butfirst sent))))
+
+(define (filter pred sent)
+  (if (empty? sent)
+    '()
+    (if (pred (first sent))
+      (sentence (first sent) (filter pred (butfirst sent)))
+      (filter pred (butfirst sent)))))
+
+(define (any? pred sent)
+  (cond ((empty? sent) #f)
+        ((pred (first sent)) #t)
+        (else (any? pred (butfirst sent)))))
+
+(define (compose func1 func2)
+  (lambda (x) (func1 (func2 x))))
+
+(define (sum numbers)
+  (reduce 0 + numbers))
+</file>
+
+<file path="blackjack/normal/majority-strategy.scm">
+(load "higher-order")
+
+; NB: bool-num and 1 are used because apparently you can't have a sentence of
+; booleans so i am tricking it into a sequence of binary digits
+
+(define (majority-strategy first-strategy second-strategy third-strategy)
+  (lambda (hand dealer-card)
+    (majority-of? 1 (sentence
+                      (bool-num (first-strategy hand dealer-card))
+                      (bool-num (second-strategy hand dealer-card))
+                      (bool-num (third-strategy hand dealer-card))))))
+
+(define (bool-num bool)
+  (if bool 1 0))
+
+(define (count-equal-to elem sent)
+  (reduce 0
+          (lambda (total current-elem)
+            (if (equal? elem current-elem)
+              (+ 1 total)
+              total))
+          sent))
+
+(define (majority-of? elem sent)
+  (> (count-equal-to elem sent) (/ (count sent) 2)))
+</file>
+
+<file path="blackjack/normal/play-n.scm">
+(load "twenty-one")
+
+(define (play-n strategy n)
+  (if (= n 0)
+    0
+    (+ (twenty-one strategy) (play-n strategy (- n 1)))))
+</file>
+
+<file path="blackjack/normal/reckless.scm">
+(define (reckless strategy)
+  (define (hit? hand dealer-card) (strategy hand dealer-card))
+  (define (previous-hit? hand dealer-card)
+    (and
+      (not (empty? hand))
+      (strategy (butlast hand) dealer-card)))
+  (lambda (hand dealer-card) (or (hit? hand dealer-card) (previous-hit? hand dealer-card))))
+</file>
+
+<file path="blackjack/normal/stop-at-17.scm">
+(load "best-total")
+
+(define (stop-at-17 hand dealer-card)
+  (< (best-total hand) 17))
+</file>
+
+<file path="blackjack/normal/stop-at.scm">
+(load "best-total")
+
+(define (stop-at n)
+  (lambda (hand dealer-card)
+    (< (best-total hand) n)))
+</file>
+
+<file path="blackjack/normal/suit-strategy.scm">
+(load "higher-order")
+
+(define (suit-strategy suit has-suit-strategy hasnt-suit-strategy)
+  (lambda (hand dealer-card)
+    (if (suit-in-hand? suit hand)
+      (has-suit-strategy hand dealer-card)
+      (hasnt-suit-strategy hand dealer-card))))
+
+(define (suit? suit)
+  (lambda (card) (equal? (last card) suit)))
+
+(define (suit-in-hand? suit hand)
+  (any? (suit? suit) hand))
+</file>
+
+<file path="blackjack/normal/test_all.sh">
+#!/bin/bash
+
+echo "tests:"
+for file in test-*.scm
+do
+    echo "$file"
+    stk $file
+done
+</file>
+
+<file path="blackjack/normal/test-best-total.scm">
+(load "load-simply")
+(load "best-total")
+(load "assert")
+
+(assert = (best-total '()) 0 "empty hand -> 0")
+(assert = (best-total '(1s)) 1 "1s -> 1")
+(assert = (best-total '(2s)) 2 "2s -> 2")
+(assert = (best-total '(10s)) 10 "10c -> 10")
+(assert = (best-total '(js)) 10 "js -> 10")
+(assert = (best-total '(qs)) 10 "qs -> 10")
+(assert = (best-total '(ks)) 10 "ks -> 10")
+(assert = (best-total '(as)) 11 "as -> 11")
+(assert = (best-total '(1s 2s)) 3 "1s 2s -> 3")
+(assert = (best-total '(10s 10s)) 20 "10s 10s -> 20")
+(assert = (best-total '(5s 7s 3s)) 15 "5s 7s 3s -> 15")
+(assert = (best-total '(7s 3s 5s)) 15 "7s 3s 5s -> 15")
+(assert = (best-total '(5s 7s 10s)) 22 "5s 7s 10s -> 22")
+(assert = (best-total '(10s 5s 7s)) 22 "10s 5s 7s -> 22")
+(assert = (best-total '(10s 9s as)) 20 "10s 9s as -> 20")
+(assert = (best-total '(as 10s 9s)) 20 "as 10s 9s -> 20")
+(assert = (best-total '(as as 10s 9s)) 21 "as as 10s 9s -> 21")
+(assert = (best-total '(as as as as)) 14 "as as as as -> 14")
+(assert = (best-total '(10s as as)) 12 "10s as as -> 12")
+(assert = (best-total '(as as as as as as as as as as as as)) 12 "as as as as as as as as as as as as-> 12")
+(assert = (best-total '(10s 10s as as)) 22 "10s 10s as as -> 22")
+
+; book examples
+(assert = (best-total '(ad 8s)) 19 "ad 8s -> 19")
+(assert = (best-total '(ad 8s 5h)) 14 "ad 8s 5h -> 14")
+(assert = (best-total '(ad as 9h)) 21 "ad as 9h -> 21")
+
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/normal/test-dealer-sensitive.scm">
+(load "load-simply")
+(load "dealer-sensitive")
+(load "assert")
+
+(assert equal? (dealer-sensitive '(as) '2s) #t "as (2s) -> #t")
+(assert equal? (dealer-sensitive '(as) '6s) #t "as (6s) -> #t")
+(assert equal? (dealer-sensitive '(as) '7s) #t "as (7s) -> #t")
+(assert equal? (dealer-sensitive '(as) '10s) #t "as (10s) -> #t")
+(assert equal? (dealer-sensitive '(as) 'ks) #t "as (ks) -> #t")
+(assert equal? (dealer-sensitive '(as) 'as) #t "as (as) -> #t")
+
+(assert equal? (dealer-sensitive '(10s 2s) '2s) #f "10s 2s (2s) -> #f")
+(assert equal? (dealer-sensitive '(10s 2s) '6s) #f "10s 2s (6s) -> #f")
+(assert equal? (dealer-sensitive '(10s 2s) '7s) #t "10s 2s (7s) -> #t")
+(assert equal? (dealer-sensitive '(10s 2s) '10s) #t "10s 2s (10s) -> #t")
+(assert equal? (dealer-sensitive '(10s 2s) 'ks) #t "10s 2s (ks) -> #t")
+(assert equal? (dealer-sensitive '(10s 2s) 'as) #t "10s 2s (as) -> #t")
+
+(assert equal? (dealer-sensitive '(10s 7s) '2s) #f "10s 2s (2s) -> #f")
+(assert equal? (dealer-sensitive '(10s 7s) '6s) #f "10s 2s (6s) -> #f")
+(assert equal? (dealer-sensitive '(10s 7s) '7s) #f "10s 2s (7s) -> #f")
+(assert equal? (dealer-sensitive '(10s 7s) '10s) #f "10s 2s (10s) -> #f")
+(assert equal? (dealer-sensitive '(10s 7s) 'ks) #f "10s 2s (ks) -> #f")
+(assert equal? (dealer-sensitive '(10s 7s) 'as) #f "10s 2s (as) -> #f")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/normal/test-majority-strategy.scm">
+(load "load-simply")
+(load "majority-strategy")
+(load "assert")
+
+(define (hit hand dealer-card) #t)
+(define (stand hand dealer-card) #f)
+
+(assert equal? ((majority-strategy stand stand stand) '() 'as) #f "#f #f #f -> #f")
+(assert equal? ((majority-strategy hit stand stand) '() 'as) #f "#t #f #f -> #f")
+(assert equal? ((majority-strategy hit hit stand) '() 'as) #t "#t #t #f -> #t")
+(assert equal? ((majority-strategy hit hit hit) '() 'as) #t "#t #t #t -> #t")
+
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/normal/test-reckless.scm">
+(load "load-simply")
+(load "reckless")
+(load "assert")
+
+(define (always-hit hand dealer-card) #t)
+(define (always-stand hand dealer-card) #f)
+(define (hit-on-empty-hand hand dealer-card) (empty? hand))
+
+(assert equal? ((reckless always-hit) '() 'as) #t "hit if the original strategy hits (empty hand)")
+(assert equal? ((reckless always-hit) '(10s 10c 10h) 'as) #t "hit if the original strategy hits (busting hand)")
+(assert equal? ((reckless always-stand) '() 'as) #f "stand if the original strategy stands and there was no previous turn")
+(assert equal? ((reckless hit-on-empty-hand) '(10c) 'as) #t "hit if the original strategy stands and previous turn it hit")
+(assert equal? ((reckless always-stand) '(10c) 'as) #f "stand if the original strategy stands and previous turn it didnt hit")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/normal/test-stop-at-17.scm">
+(load "load-simply")
+(load "stop-at-17")
+(load "assert")
+
+(assert equal? (stop-at-17 '() 'as) #t "empty hand -> #t")
+(assert equal? (stop-at-17 '(2s) 'as) #t "2s -> #t")
+(assert equal? (stop-at-17 '(10s 6s) 'as) #t "10s 6s -> #t")
+(assert equal? (stop-at-17 '(10s 7s) 'as) #f "10s 7s -> #f")
+(assert equal? (stop-at-17 '(as 5s) 'as) #t "as 5s -> #t") 
+(assert equal? (stop-at-17 '(as 6s) 'as) #f "as 6s -> #f") 
+(assert equal? (stop-at-17 '(3s 4s 5s as) 'as) #t "3s 4s 5s as -> #t") 
+(assert equal? (stop-at-17 '(4h 10h 10s) 'as) #f "4h 10h 10s -> #f")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/normal/test-stop-at.scm">
+(load "load-simply")
+(load "stop-at")
+(load "assert")
+
+(define stop-at-0 (stop-at 0))
+(assert equal? (stop-at-0 '() 'as) #f "empty hand -> #f")
+(assert equal? (stop-at-0 '(2s) 'as) #f "2s -> #f")
+
+(define stop-at-3 (stop-at 3))
+(assert equal? (stop-at-3 '() 'as) #t "empty hand -> #t")
+(assert equal? (stop-at-3 '(2s) 'as) #t "2s -> #t")
+(assert equal? (stop-at-3 '(3s) 'as) #f "3s -> #f")
+(assert equal? (stop-at-3 '(4s) 'as) #f "4s -> #f")
+
+(define stop-at-17 (stop-at 17))
+(assert equal? (stop-at-17 '() 'as) #t "empty hand -> #t")
+(assert equal? (stop-at-17 '(2s) 'as) #t "2s -> #t")
+(assert equal? (stop-at-17 '(10s 6s) 'as) #t "10s 6s -> #t")
+(assert equal? (stop-at-17 '(10s 7s) 'as) #f "10s 7s -> #f")
+(assert equal? (stop-at-17 '(as 5s) 'as) #t "as 5s -> #t") 
+(assert equal? (stop-at-17 '(as 6s) 'as) #f "as 6s -> #f") 
+(assert equal? (stop-at-17 '(3s 4s 5s as) 'as) #t "3s 4s 5s as -> #t") 
+(assert equal? (stop-at-17 '(4h 10h 10s) 'as) #f "4h 10h 10s -> #f")
+
+(define stop-at-100 (stop-at 100))
+(assert equal? (stop-at-100 '() 'as) #t "empty hand -> #t")
+(assert equal? (stop-at-100 '(10s 7s) 'as) #t "10s 7s -> #t")
+(assert equal? (stop-at-100 '(10s as) 'as) #t "10s as -> #t")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/normal/test-suit-strategy.scm">
+(load "load-simply")
+(load "suit-strategy")
+(load "stop-at")
+(load "assert")
+
+(define (valentine-strategy hand dealer-card)
+  ((suit-strategy 'h (stop-at 19) (stop-at 17)) hand dealer-card))
+
+(assert equal? (valentine-strategy '(10s 6s) 'as) #t "less than 17 always hits")
+(assert equal? (valentine-strategy '(10s 7h) 'as) #t "17 hits with hearts")
+(assert equal? (valentine-strategy '(10s 8h) 'as) #t "18 hits with hearts")
+(assert equal? (valentine-strategy '(10s 7c) 'as) #f "17 stands without hearts")
+(assert equal? (valentine-strategy '(10s 9h) 'as) #f "19 always stands")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/normal/test-valentine-strategy.scm">
+(load "load-simply")
+(load "valentine-strategy")
+(load "assert")
+
+(assert equal? (valentine-strategy '(10s 6s) 'as) #t "less than 17 always hits")
+(assert equal? (valentine-strategy '(10s 7h) 'as) #t "17 hits with hearts")
+(assert equal? (valentine-strategy '(10s 8h) 'as) #t "18 hits with hearts")
+(assert equal? (valentine-strategy '(10s 7c) 'as) #f "17 stands without hearts")
+(assert equal? (valentine-strategy '(10s 9h) 'as) #f "19 always stands")
+
+(display "done.\n")
+(quit)
+</file>
+
+<file path="blackjack/normal/twenty-one.scm">
+(load "best-total")
+
+(define (twenty-one strategy)
+  (define (play-dealer customer-hand dealer-hand-so-far rest-of-deck)
+    (cond ((> (best-total dealer-hand-so-far) 21) 1)
+	  ((< (best-total dealer-hand-so-far) 17)
+	   (play-dealer customer-hand
+			(se dealer-hand-so-far (first rest-of-deck))
+			(bf rest-of-deck)))
+	  ((< (best-total customer-hand) (best-total dealer-hand-so-far)) -1)
+	  ((= (best-total customer-hand) (best-total dealer-hand-so-far)) 0)
+	  (else 1)))
+
+  (define (play-customer customer-hand-so-far dealer-up-card rest-of-deck)
+    (cond ((> (best-total customer-hand-so-far) 21) -1)
+	  ((strategy customer-hand-so-far dealer-up-card)
+	   (play-customer (se customer-hand-so-far (first rest-of-deck))
+			  dealer-up-card
+			  (bf rest-of-deck)))
+	  (else
+	   (play-dealer customer-hand-so-far
+			(se dealer-up-card (first rest-of-deck))
+			(bf rest-of-deck)))))
+
+  (let ((deck (make-deck)))
+    (play-customer (se (first deck) (first (bf deck)))
+		   (first (bf (bf deck)))
+		   (bf (bf (bf deck))))) )
+
+(define (make-ordered-deck)
+  (define (make-suit s)
+    (every (lambda (rank) (word rank s)) '(A 2 3 4 5 6 7 8 9 10 J Q K)) )
+  (se (make-suit 'H) (make-suit 'S) (make-suit 'D) (make-suit 'C)) )
+
+(define (make-deck)
+  (define (shuffle deck size)
+    (define (move-card in out which)
+      (if (= which 0)
+	  (se (first in) (shuffle (se (bf in) out) (- size 1)))
+	  (move-card (bf in) (se (first in) out) (- which 1)) ))
+    (if (= size 0)
+	deck
+    	(move-card deck '() (random size)) ))
+  (shuffle (make-ordered-deck) 52) )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;                                      32
+</file>
+
+<file path="blackjack/normal/valentine-strategy.scm">
+(load "best-total")
+
+(define (valentine-strategy hand dealer-card)
+  (let ((player-points (best-total hand)))
+    (or
+      (and (has-hearts? hand) (< player-points 19))
+      (< player-points 17))))
+
+
+(define (has-hearts? hand)
+  (any? (lambda (card) (heart? card)) hand))
+
+(define (heart? card)
+  (equal? (last card) 'h))
+</file>
+
+<file path="blackjack/README.txt">
+first project cs61a spring 2011
+
+test
+====
+$ stk test-best-total.scm
+</file>
+
+</files>
